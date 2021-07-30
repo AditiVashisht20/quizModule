@@ -47,6 +47,22 @@
                </div><br>
                <button id='addQues'class='btn-btn-primary'>Add Question</button>
         </div>
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Question Saved Successfully
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
      
 
 
@@ -65,6 +81,7 @@
         var addLink = document.getElementById('addOption');
         var options = document.getElementById('options');
         var addQues=document.getElementById('addQues');
+        var modal=document.getElementById('exampleModal');
         var questions=[];
         init();
 
@@ -74,6 +91,7 @@
 
         function getOptionsDiv(){
             var div = document.createElement('div')
+            div.setAttribute('name','option');
             var textArea = document.createElement('textarea');
             var checkbox = document.createElement('input');
             div.setAttribute('class', 'space');
@@ -99,6 +117,8 @@
             for(let i = 0;i<2;i++){
                 options.appendChild(getOptionsDiv());
             }
+            var q = localStorage.getItem('questions') || "[]";
+            questions = JSON.parse(q,reviver);
         }
         class Question{
             constructor(title,description,options)
@@ -108,11 +128,31 @@
                 this.options=options;
             }
         }
+        function replacer(key, value) {
+            if (value instanceof Map) {
+                return {
+                    dataType: 'Map',
+                    value: Array.from(value.entries()),
+                };
+            } else {
+                return value;
+            }
+        }
+
+        function reviver(key, value) {
+            if (typeof value === 'object' && value !== null) {
+                if (value.dataType === 'Map') {
+                    return new Map(value.value);
+                }
+            }
+            return value;
+        }
         var btn=document.getElementById('addQues');
         btn.addEventListener('click', function()
         {
             var title=document.getElementById('ques_title').value;
             var desc=quill.getContents();
+            var flag=false;
             let map=new Map();
             var options=document.getElementsByName('option');
             for(let i=0;i<options.length;i++)
@@ -120,6 +160,7 @@
                 if(options[i].childNodes[1].checked)
                 {
                     map.set(options[i].childNodes[0].value, true);
+                    flag=true;
                 }
                 else
                 {
@@ -127,12 +168,24 @@
                 }
 
             }
+            if(!title)
+            {
+                alert('QUestion should no be empty');
+                return;
+            }
+            if(flag==true)
+            {
             let question=new Question(title,desc,map);
             questions.push(question);
             let ques=JSON.stringify(questions,replacer);
             console.log(ques);
             localStorage.setItem('questions',ques);
+            }
+            else{
+                alert('Please select the correct answer');
+            }
         })
+        
         
 
     </script>
